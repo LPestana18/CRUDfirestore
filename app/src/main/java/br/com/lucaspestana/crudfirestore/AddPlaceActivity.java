@@ -1,6 +1,7 @@
 package br.com.lucaspestana.crudfirestore;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -14,6 +15,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
@@ -22,6 +24,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.nio.BufferUnderflowException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,9 +37,11 @@ public class AddPlaceActivity extends AppCompatActivity {
     EditText mName, mDescription;
     Button mSaveBtn, mCancelBtn;
     String date;
-
+    ProgressDialog pd;
     // Firestore instance
     FirebaseFirestore db;
+
+    String pId, pName, pDescription;
 
     // Gps
     private LocationManager locationManager;
@@ -50,6 +55,8 @@ public class AddPlaceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_place);
 
+        ActionBar actionBar = getSupportActionBar();
+
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         mName = findViewById(R.id.input_name);
@@ -60,22 +67,61 @@ public class AddPlaceActivity extends AppCompatActivity {
         //Firestore
         db = FirebaseFirestore.getInstance();
 
-        // click button upload data
+
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            //Update data
+            actionBar.setTitle("Atualização de lugares");
+            mSaveBtn.setText("Atualizar");
+            //get data
+            pId = bundle.getString("pId");
+            pName = bundle.getString("pName");
+            pDescription = bundle.getString("pDescription");
+            // set data
+            mName.setText(pName);
+            mDescription.setText(pDescription);
+        }
+        else {
+            //New Data
+            actionBar.setTitle("Cadastro de lugares");
+            mSaveBtn.setText("Cadastrar");
+        }
+
+        //progress dialog
+        pd = new ProgressDialog(this);
+
+        /*if we came here after clicking Update option(from AlertDialog of ListActivity)
+         * then get the data(name, description) from EditText, id from intent,
+         * and update existing data on the basis of id*/
         mSaveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // input data
-                String name = mName.getText().toString();
-                String descripton = mDescription.getText().toString();
-                date = getDateTime();
-
-                if (name == "" || name.isEmpty() || descripton == "" || descripton.isEmpty()) {
-                    Toast.makeText(AddPlaceActivity.this, "Nome e descrição devem ser preenchidos!", Toast.LENGTH_SHORT).show();
-                } else {
-                    // function call to upload data
-                    uploadData(name, descripton, date, latitudeCurrent, longitudeCurrent);
+                Bundle bundle1 = getIntent().getExtras();
+                if (bundle1 != null) {
+                    // updating
+                    // input data
+                    String id = pId;
+                    String name = mName.getText().toString();
+                    String descripton = mDescription.getText().toString();
+                    // function call to update data
+                    updateData(id, name, descripton);
                     clearFields(v);
                     hideKeyboard(v);
+                } else {
+                    //adding new
+                    // input data
+                    String name = mName.getText().toString();
+                    String descripton = mDescription.getText().toString();
+                    date = getDateTime();
+
+                    if (name == "" || name.isEmpty() || descripton == "" || descripton.isEmpty()) {
+                        Toast.makeText(AddPlaceActivity.this, "Nome e descrição devem ser preenchidos!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // function call to upload data
+                        uploadData(name, descripton, date, latitudeCurrent, longitudeCurrent);
+                        clearFields(v);
+                        hideKeyboard(v);
+                    }
                 }
             }
         });
@@ -90,7 +136,7 @@ public class AddPlaceActivity extends AppCompatActivity {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
-                Double lat  = location.getLatitude();
+                Double lat = location.getLatitude();
                 Double lon = location.getLongitude();
 
                 latitudeCurrent = lat;
@@ -109,40 +155,32 @@ public class AddPlaceActivity extends AppCompatActivity {
         };
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED) {
+    private void updateData(String id, String name, String descripton) {
+        //set title of progress bar
+        pd.setTitle("Atualizando dado...");
 
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_GPS);
-        }
+        pd.show();
+        db.collection("Places").document(id)
+                .update("Name", name, "Description", descripton)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        // called when updated successfully
+                        pd.dismiss();
+                        Toast.makeText(AddPlaceActivity.this, "Atualização realizada com sucesso!", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        pd.dismiss();
+                        Toast.makeText(AddPlaceActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1001) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                        PackageManager.PERMISSION_GRANTED) {
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-                }
-            }
-            else {
-                Toast.makeText(this, getString(R.string.no_gps_no_app), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        locationManager.removeUpdates(locationListener);
-    }
-
-    private void uploadData(String name, String descripton, String date, Double lat , Double lon) {
+    private void uploadData(String name, String descripton, String date, Double lat, Double lon) {
 
         //random id for each data to be stored
         String id = UUID.randomUUID().toString();
@@ -173,11 +211,18 @@ public class AddPlaceActivity extends AppCompatActivity {
                 });
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        locationManager.removeUpdates(locationListener);
+    }
+
     private void clearFields(View v) {
         mName.setText("");
         mDescription.setText("");
         getCurrentFocus().clearFocus();
     }
+
     private void hideKeyboard(View view) {
         InputMethodManager ims = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         ims.hideSoftInputFromWindow(view.getWindowToken(), 0);
@@ -187,5 +232,31 @@ public class AddPlaceActivity extends AppCompatActivity {
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Date date = new Date();
         return dateFormat.format(date);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
+
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_GPS);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1001) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                        PackageManager.PERMISSION_GRANTED) {
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                }
+            } else {
+                Toast.makeText(this, getString(R.string.no_gps_no_app), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

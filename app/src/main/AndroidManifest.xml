@@ -15,9 +15,9 @@
         <activity android:name=".AddPlaceActivity" android:label="@string/novo_lugar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".ListActivity" />
         </activity>
-        <activity android:name=".MainActivity" android:label="Lugares Visitados">
+        <activity android:name=".ListActivity" android:label="Lugares Visitados">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
