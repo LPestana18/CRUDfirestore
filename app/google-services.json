@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "184495973130",
+    "firebase_url": "https://crud-firestore-ef4c0.firebaseio.com",
+    "project_id": "crud-firestore-ef4c0",
+    "storage_bucket": "crud-firestore-ef4c0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184495973130:android:a97fdf2a6a6c1701a590f3",
+        "android_client_info": {
+          "package_name": "br.com.lucaspestana.crudfirestore"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "184495973130-h7c95jarmdrt0qqkagflutb3je85efe5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApstPkPsexr-GVIKdPLjQ8twW-ISIAlxc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "184495973130-h7c95jarmdrt0qqkagflutb3je85efe5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

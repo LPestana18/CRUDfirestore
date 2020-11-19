@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">CRUD firestore</string>
+
+
+    <string name="nome_do_local">Nome do local</string>
+    <string name="data">Data</string>
+    <string name="latitude">Latitude</string>
+    <string name="ok">OK</string>
+    <string name="descricao">Descrição</string>
+    <string name="longitude">Longitude</string>
+    <string name="add">Add</string>
+
+    <string name="dica_login">Digite seu login</string>
+    <string name="dica_senha">Digite sua senha</string>
+    <string name="quero_me_cadastrar">Quero me cadastrar</string>
+
+    <string name="entrar">Entrar com cadastro existente</string>
+    <string name="cad_cadastrar">Cadastrar</string>
+    <string name="cad_cancel">Cancelar</string>
+    <string name="cad_entrar">Entrar</string>
+    <string name="nome">Nome:</string>
+    <string name="email">E-mail:</string>
+    <string name="senha">Senha:</string>
+    <string name="confSenha">Confirmar Senha:</string>
+    <string name="modificar">Modificar</string>
+    <string name="onde_estou_localizado">Onde estou localizado</string>
+    <string name="saber_locatizacao">Não sabe onde está?Click aqui e descubra!!!</string>
+    <string name="novo_lugar">Cadastro de lugares</string>
+    <string name="logout">Sair</string>
+    <string name="perfil">Perfil</string>
+    <string name="cadastrar">Não tem uma conta? Crie aqui!</string>
+    <string name="no_gps_no_app">Sem o GPS o aplicativo não funciona</string>
+    <string name="title_activity_maps">Map</string>
+</resources>
