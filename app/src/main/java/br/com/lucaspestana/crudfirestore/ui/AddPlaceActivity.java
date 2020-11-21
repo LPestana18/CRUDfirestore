@@ -1,4 +1,4 @@
-package br.com.lucaspestana.crudfirestore;
+package br.com.lucaspestana.crudfirestore.ui;
 
 import android.Manifest;
 import android.app.ProgressDialog;
@@ -24,13 +24,14 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.nio.BufferUnderflowException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import br.com.lucaspestana.crudfirestore.R;
 
 public class AddPlaceActivity extends AppCompatActivity {
 
@@ -43,21 +44,12 @@ public class AddPlaceActivity extends AppCompatActivity {
 
     String pId, pName, pDescription;
 
-    // Gps
-    private LocationManager locationManager;
-    private LocationListener locationListener;
-    private static final int REQUEST_CODE_GPS = 1001;
-    private Double latitudeCurrent;
-    private Double longitudeCurrent;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_place);
 
         ActionBar actionBar = getSupportActionBar();
-
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         mName = findViewById(R.id.input_name);
         mDescription = findViewById(R.id.input_description);
@@ -80,8 +72,7 @@ public class AddPlaceActivity extends AppCompatActivity {
             // set data
             mName.setText(pName);
             mDescription.setText(pDescription);
-        }
-        else {
+        } else {
             //New Data
             actionBar.setTitle("Cadastro de lugares");
             mSaveBtn.setText("Cadastrar");
@@ -118,7 +109,7 @@ public class AddPlaceActivity extends AppCompatActivity {
                         Toast.makeText(AddPlaceActivity.this, "Nome e descrição devem ser preenchidos!", Toast.LENGTH_SHORT).show();
                     } else {
                         // function call to upload data
-                        uploadData(name, descripton, date, latitudeCurrent, longitudeCurrent);
+                        uploadData(name, descripton, date);
                         clearFields(v);
                         hideKeyboard(v);
                     }
@@ -132,27 +123,6 @@ public class AddPlaceActivity extends AppCompatActivity {
                 clearFields(v);
             }
         });
-
-        locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(@NonNull Location location) {
-                Double lat = location.getLatitude();
-                Double lon = location.getLongitude();
-
-                latitudeCurrent = lat;
-                longitudeCurrent = lon;
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(@NonNull String provider) {
-
-            }
-        };
     }
 
     private void updateData(String id, String name, String descripton) {
@@ -180,7 +150,7 @@ public class AddPlaceActivity extends AppCompatActivity {
                 });
     }
 
-    private void uploadData(String name, String descripton, String date, Double lat, Double lon) {
+    private void uploadData(String name, String descripton, String date) {
 
         //random id for each data to be stored
         String id = UUID.randomUUID().toString();
@@ -190,8 +160,6 @@ public class AddPlaceActivity extends AppCompatActivity {
         doc.put("Name", name);
         doc.put("Description", descripton);
         doc.put("Date", date);
-        doc.put("Latitude", lat);
-        doc.put("Longitude", lon);
 
         // add this data firestore
         db.collection("Places").document(id).set(doc)
@@ -211,11 +179,6 @@ public class AddPlaceActivity extends AppCompatActivity {
                 });
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        locationManager.removeUpdates(locationListener);
-    }
 
     private void clearFields(View v) {
         mName.setText("");
@@ -232,31 +195,5 @@ public class AddPlaceActivity extends AppCompatActivity {
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Date date = new Date();
         return dateFormat.format(date);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED) {
-
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_GPS);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1001) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                        PackageManager.PERMISSION_GRANTED) {
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-                }
-            } else {
-                Toast.makeText(this, getString(R.string.no_gps_no_app), Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 }

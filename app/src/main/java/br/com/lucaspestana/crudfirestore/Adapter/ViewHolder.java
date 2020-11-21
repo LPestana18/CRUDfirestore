@@ -1,10 +1,12 @@
-package br.com.lucaspestana.crudfirestore;
+package br.com.lucaspestana.crudfirestore.Adapter;
 
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import br.com.lucaspestana.crudfirestore.R;
 
 public class ViewHolder extends RecyclerView.ViewHolder {
 

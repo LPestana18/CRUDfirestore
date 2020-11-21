@@ -1,4 +1,4 @@
-package br.com.lucaspestana.crudfirestore;
+package br.com.lucaspestana.crudfirestore.Adapter;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -13,7 +13,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+import br.com.lucaspestana.crudfirestore.maps.MapsActivity;
+import br.com.lucaspestana.crudfirestore.ui.AddPlaceActivity;
+import br.com.lucaspestana.crudfirestore.ui.ListActivity;
 import br.com.lucaspestana.crudfirestore.Model.Model;
+import br.com.lucaspestana.crudfirestore.R;
 
 public class CustomAdapter extends RecyclerView.Adapter<ViewHolder> {
 
@@ -45,6 +49,8 @@ public class CustomAdapter extends RecyclerView.Adapter<ViewHolder> {
 
                 Toast.makeText(listActivity, name+"\n"+ description,Toast.LENGTH_SHORT).show();
 
+                Intent intent = new Intent(listActivity, MapsActivity.class);
+                listActivity.startActivity(intent);
             }
 
             @Override
