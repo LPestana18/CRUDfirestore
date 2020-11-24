@@ -49,14 +49,6 @@ public class ListActivity extends AppCompatActivity {
 
     CustomAdapter adapter;
 
-    private LocationManager locationManager;
-    private LocationListener locationListener;
-    private static final int REQUEST_CODE_GPS = 1001;
-
-    private double latitudeAtual;
-    private double longitudeAtual;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,73 +79,7 @@ public class ListActivity extends AppCompatActivity {
             }
         });
 
-        locationManager = (LocationManager)
-                getSystemService(Context.LOCATION_SERVICE);
-
-        locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(@NonNull Location location) {
-                double lat  = location.getLatitude();
-                double lon = location.getLongitude();
-
-                latitudeAtual = lat;
-                longitudeAtual = lon;
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(@NonNull String provider) {
-
-            }
-        };
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (ActivityCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-        }
-        else {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_GPS);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 1001) {
-            if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                        PackageManager.PERMISSION_GRANTED) {
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0 , 0, locationListener);
-                }
-            }
-            else {
-                Toast.makeText(this, getString(R.string.no_gps_no_app), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        locationManager.removeUpdates(locationListener);
-    }
-
-    public double getLatitudeAtual() {
-        return latitudeAtual;
-    }
-
-    public double getLongitudeAtual() {
-        return longitudeAtual;
-    }
-
 
     private void showData() {
         db.collection("Places")
@@ -168,7 +94,9 @@ public class ListActivity extends AppCompatActivity {
                             Model model = new Model(doc.getString("id"),
                                     doc.getString("Name"),
                                     doc.getString("Description"),
-                                    doc.getString("Date"));
+                                    doc.getString("Date"),
+                                    doc.getString("Lat"),
+                                    doc.getString("Lon"));
 
                             modelList.add(model);
                         }

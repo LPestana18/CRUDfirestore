@@ -3,6 +3,7 @@ package br.com.lucaspestana.crudfirestore.ui;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -44,12 +45,22 @@ public class AddPlaceActivity extends AppCompatActivity {
 
     String pId, pName, pDescription;
 
+
+    private LocationManager locationManager;
+    private LocationListener locationListener;
+    private static final int REQUEST_CODE_GPS = 1001;
+
+    public Double latitudeAtual;
+    public Double longitudeAtual;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_place);
 
         ActionBar actionBar = getSupportActionBar();
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         mName = findViewById(R.id.input_name);
         mDescription = findViewById(R.id.input_description);
@@ -109,9 +120,10 @@ public class AddPlaceActivity extends AppCompatActivity {
                         Toast.makeText(AddPlaceActivity.this, "Nome e descrição devem ser preenchidos!", Toast.LENGTH_SHORT).show();
                     } else {
                         // function call to upload data
-                        uploadData(name, descripton, date);
+                        uploadData(name, descripton, date, latitudeAtual.toString(), longitudeAtual.toString());
                         clearFields(v);
                         hideKeyboard(v);
+                        goList();
                     }
                 }
             }
@@ -121,17 +133,77 @@ public class AddPlaceActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 clearFields(v);
+                goList();
             }
         });
+
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                double lat = location.getLatitude();
+                double lng = location.getLongitude();
+
+                latitudeAtual = lat;
+                longitudeAtual = lng;
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(@NonNull String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(@NonNull String provider) {
+
+            }
+        };
     }
 
-    private void updateData(String id, String name, String descripton) {
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)==
+            PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        }else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_GPS);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE_GPS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED) {
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0,0, locationListener);
+                }
+            }
+            else {
+                Toast.makeText(this, getString(R.string.no_gps_no_app), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        locationManager.removeUpdates(locationListener);
+    }
+
+    private void updateData(String id, String name, String description) {
         //set title of progress bar
         pd.setTitle("Atualizando dado...");
 
         pd.show();
         db.collection("Places").document(id)
-                .update("Name", name, "Description", descripton)
+                .update("Name", name, "Description", description)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -150,7 +222,7 @@ public class AddPlaceActivity extends AppCompatActivity {
                 });
     }
 
-    private void uploadData(String name, String descripton, String date) {
+    private void uploadData(String name, String descripton, String date, String lat, String lng) {
 
         //random id for each data to be stored
         String id = UUID.randomUUID().toString();
@@ -160,6 +232,8 @@ public class AddPlaceActivity extends AppCompatActivity {
         doc.put("Name", name);
         doc.put("Description", descripton);
         doc.put("Date", date);
+        doc.put("Lat", lat);
+        doc.put("Lon", lng);
 
         // add this data firestore
         db.collection("Places").document(id).set(doc)
@@ -195,5 +269,9 @@ public class AddPlaceActivity extends AppCompatActivity {
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         Date date = new Date();
         return dateFormat.format(date);
+    }
+
+    public void goList() {
+        startActivity(new Intent(this, ListActivity.class));
     }
 }

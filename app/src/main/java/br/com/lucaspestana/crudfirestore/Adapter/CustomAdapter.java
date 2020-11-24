@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import br.com.lucaspestana.crudfirestore.maps.MapsActivity;
 import br.com.lucaspestana.crudfirestore.ui.AddPlaceActivity;
 import br.com.lucaspestana.crudfirestore.ui.ListActivity;
 import br.com.lucaspestana.crudfirestore.Model.Model;
@@ -48,9 +47,6 @@ public class CustomAdapter extends RecyclerView.Adapter<ViewHolder> {
                 String date = modelList.get(position).getDate();
 
                 Toast.makeText(listActivity, name+"\n"+ description,Toast.LENGTH_SHORT).show();
-
-                Intent intent = new Intent(listActivity, MapsActivity.class);
-                listActivity.startActivity(intent);
             }
 
             @Override
@@ -99,6 +95,8 @@ public class CustomAdapter extends RecyclerView.Adapter<ViewHolder> {
         holder.mTextName.setText(modelList.get(position).getName());
         holder.mTextDescription.setText(modelList.get(position).getDescription());
         holder.mTextDate.setText(modelList.get(position).getDate());
+        holder.mTextLat.setText(modelList.get(position).getLat());
+        holder.mTextLng.setText(modelList.get(position).getLng());
     }
 
     @Override
